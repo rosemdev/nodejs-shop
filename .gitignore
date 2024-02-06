@@ -1,0 +1,11 @@
+node_modules
+prettier.config.cjs
+
+# Editor directories and files
+.idea
+.vscode
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
