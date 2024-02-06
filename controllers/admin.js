@@ -1,15 +1,15 @@
 const Product = require("../models/product");
 const { validationResult } = require("express-validator");
+const SEPARATOR_SIGN = "/";
 
 exports.getAddProduct = (req, res, next) => {
   res.render("admin/edit-product", {
     pageTitle: "Add Product",
     path: "/admin/add-product",
     editing: false,
-    validationResult: [],
+    errorMessages: [],
     product: {
       title: null,
-      imageUrl: null,
       description: null,
       price: null,
     },
@@ -18,29 +18,33 @@ exports.getAddProduct = (req, res, next) => {
 
 exports.postAddProduct = (req, res, next) => {
   const title = req.body.title;
-  const imageUrl = req.file;
+  const image = req.file;
   const description = req.body.description;
   const price = req.body.price;
   const errors = validationResult(req);
-  console.log(errors);
-  console.log(imageUrl);
-  
+  const errorMessages = errors.isEmpty()
+    ? [
+        {
+          msg: "Attached file is not a image. Please use .png, .jpeg or .jpg formats.",
+        },
+      ]
+    : errors.isEmpty();
 
-  if (!errors.isEmpty()) {
-    return res.status(422).render("edit-product", {
+  if (!errors.isEmpty() || !image) {
+    return res.status(422).render("admin/edit-product", {
       pageTitle: "Add Product",
       path: "/admin/add-product",
       editing: false,
-      validationResult: errors.array(),
+      errorMessages: errorMessages,
       product: {
         title,
-        imageUrl,
         description,
         price,
       },
     });
   }
 
+  const imageUrl = SEPARATOR_SIGN.concat(image.path);
   const product = new Product({
     title: title,
     price: price,
@@ -58,7 +62,7 @@ exports.postAddProduct = (req, res, next) => {
     .catch((err) => {
       const error = new Error(err);
       error.httpStatusCode = 500;
-      return next(error)
+      return next(error);
     });
 };
 
@@ -80,13 +84,13 @@ exports.getEditProduct = (req, res, next) => {
         path: "/admin/edit-product",
         editing: editMode,
         product: product,
-        validationResult: [],
+        errorMessages: [],
       });
     })
     .catch((err) => {
       const error = new Error(err);
       error.httpStatusCode = 500;
-      return next(error)
+      return next(error);
     });
 };
 
@@ -95,7 +99,7 @@ exports.postEditProduct = (req, res, next) => {
   const updatedTitle = req.body.title.trim();
   const updatedPrice = req.body.price.trim();
   const updatedDescription = req.body.description.trim();
-  const updatedImageUrl = req.body.imageUrl.trim();
+  const image = req.file;
   const errors = validationResult(req);
 
   if (!errors.isEmpty()) {
@@ -103,10 +107,9 @@ exports.postEditProduct = (req, res, next) => {
       pageTitle: "Edit Product",
       path: "/admin/edit-product",
       editing: true,
-      validationResult: errors.array(),
+      errorMessages: errors.array(),
       product: {
         title: updatedTitle,
-        imageUrl: updatedImageUrl,
         description: updatedDescription,
         price: updatedPrice,
         _id: prodId,
@@ -123,7 +126,10 @@ exports.postEditProduct = (req, res, next) => {
       product.title = updatedTitle;
       product.price = updatedPrice;
       product.description = updatedDescription;
-      product.imageUrl = updatedImageUrl;
+
+      if (image) {
+        product.imageUrl = SEPARATOR_SIGN.concat(image.path);
+      }
 
       return product.save().then(() => {
         res.redirect("/admin/products");
@@ -132,7 +138,7 @@ exports.postEditProduct = (req, res, next) => {
     .catch((err) => {
       const error = new Error(err);
       error.httpStatusCode = 500;
-      return next(error)
+      return next(error);
     });
 };
 
