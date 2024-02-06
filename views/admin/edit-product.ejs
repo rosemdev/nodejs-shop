@@ -7,8 +7,8 @@
    <%- include('../includes/navigation.ejs') %>
    
     <main>
-        <% if (validationResult && validationResult.length && validationResult[0].msg) { %>
-            <div class="user-message user-message--error"><%= validationResult[0].msg %></div>
+        <% if (errorMessages && errorMessages.length && errorMessages[0].msg) { %>
+            <div class="user-message user-message--error"><%= errorMessages[0].msg %></div>
         <% } %>
 
             <form class="product-form" action="/admin/<% if (editing) { %>edit-product<% } else { %>add-product<% } %>" method="POST" enctype="multipart/form-data">
@@ -18,8 +18,8 @@
                     type="text" 
                     name="title" 
                     id="title" 
-                    value="<% if (editing || (validationResult && validationResult.length)) { %><%= product.title%><% } %>"
-                    class="<%= validationResult.find( it => it.path === 'title') ? 'invalid' : '' %>">
+                    value="<% if (editing || (errorMessages && errorMessages.length)) { %><%= product.title%><% } %>"
+                    class="<%= errorMessages.find( it => it.path === 'title') ? 'invalid' : '' %>">
             </div>
 
             <!-- <div class="form-control">
@@ -28,8 +28,8 @@
                     type="text" 
                     name="imageUrl" 
                     id="imageUrl" 
-                    value="<% if (editing || (validationResult && validationResult.length)) { %><%= product.imageUrl%><% } %>"
-                    class="<%= validationResult.find( it => it.path === 'imageUrl') ? 'invalid' : '' %>">
+                    value="<% if (editing || (errorMessages && errorMessages.length)) { %><%= product.imageUrl%><% } %>"
+                    class="<%= errorMessages.find( it => it.path === 'imageUrl') ? 'invalid' : '' %>">
             </div> -->
 
             <div class="form-control">
@@ -39,13 +39,13 @@
                     name="price" 
                     id="price" 
                     step="0.01" 
-                    value="<% if (editing || (validationResult && validationResult.length)) { %><%= product.price%><% } %>"
-                    class="<%= validationResult.find( it => it.path === 'price') ? 'invalid' : '' %>">
+                    value="<% if (editing || (errorMessages && errorMessages.length)) { %><%= product.price%><% } %>"
+                    class="<%= errorMessages.find( it => it.path === 'price') ? 'invalid' : '' %>">
             </div>
 
             <div class="form-control">
                 <label for="description">Description</label>
-                <textarea name="description" id="description" rows="5" class="<%= validationResult.find( it => it.path === 'description') ? 'invalid' : '' %>"><% if (editing || (validationResult && validationResult.length)) { %><%= product.description%><% } %></textarea>
+                <textarea name="description" id="description" rows="5" class="<%= errorMessages.find( it => it.path === 'description') ? 'invalid' : '' %>"><% if (editing || (errorMessages && errorMessages.length)) { %><%= product.description%><% } %></textarea>
             </div>
 
             <div class="form-control">
