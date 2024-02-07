@@ -10,13 +10,18 @@
                 <ul class="cart__item-list">
                     <% orders.forEach(order => { %>
                         <li class="cart__item">
-                            <h1># <%= order._id.toString() %></h1>
+                            <h1># <%= order._id.toString() %>
+                                <a href="/orders/<%= order._id.toString() %>">Invoice</a>
+                            </h1> 
                             <p><strong>Shipping to:</strong> <%= order.user.username %> (<%= order.user.email %>)</p>
                             <ul>
                                 <% order.products.forEach(item => { %> %>
-                                    <li><%= item.product.title %> (<%= item.quantity %>) - <%= item.product.price %></li>
+                                    <li>
+                                        <%= item.product.title %> (<%= item.quantity %>) - <%= item.product.price %>
+                                    </li>
                                 <% }) %>
                             </ul>
+                            
                             <p><strong>Total:</strong> <%= order.total %>$</p>
                         </li>
                     <% }) %>

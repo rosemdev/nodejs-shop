@@ -1,11 +1,13 @@
-const Product = require("../models/product");
-const { validationResult } = require("express-validator");
-const SEPARATOR_SIGN = "/";
+const Product = require('../models/product');
+const { validationResult } = require('express-validator');
+const SEPARATOR_SIGN = '/';
+const removeFile = require('../util/removeFile');
+const product = require('../models/product');
 
 exports.getAddProduct = (req, res, next) => {
-  res.render("admin/edit-product", {
-    pageTitle: "Add Product",
-    path: "/admin/add-product",
+  res.render('admin/edit-product', {
+    pageTitle: 'Add Product',
+    path: '/admin/add-product',
     editing: false,
     errorMessages: [],
     product: {
@@ -25,15 +27,15 @@ exports.postAddProduct = (req, res, next) => {
   const errorMessages = errors.isEmpty()
     ? [
         {
-          msg: "Attached file is not a image. Please use .png, .jpeg or .jpg formats.",
+          msg: 'Attached file is not a image. Please use .png, .jpeg or .jpg formats.',
         },
       ]
     : errors.isEmpty();
 
   if (!errors.isEmpty() || !image) {
-    return res.status(422).render("admin/edit-product", {
-      pageTitle: "Add Product",
-      path: "/admin/add-product",
+    return res.status(422).render('admin/edit-product', {
+      pageTitle: 'Add Product',
+      path: '/admin/add-product',
       editing: false,
       errorMessages: errorMessages,
       product: {
@@ -56,10 +58,10 @@ exports.postAddProduct = (req, res, next) => {
   product
     .save()
     .then(() => {
-      res.redirect("/admin/products");
+      res.redirect('/admin/products');
     })
     // .catch((err) => res.status(500).redirect('/500'));
-    .catch((err) => {
+    .catch(err => {
       const error = new Error(err);
       error.httpStatusCode = 500;
       return next(error);
@@ -70,24 +72,24 @@ exports.getEditProduct = (req, res, next) => {
   const editMode = Boolean(req.query.edit);
 
   if (!editMode) {
-    return res.redirect("/");
+    return res.redirect('/');
   }
 
   const prodId = req.params.productId;
   Product.findById(prodId)
-    .then((product) => {
+    .then(product => {
       if (!product) {
-        return res.redirect("/");
+        return res.redirect('/');
       }
-      res.render("admin/edit-product", {
-        pageTitle: "Edit Product",
-        path: "/admin/edit-product",
+      res.render('admin/edit-product', {
+        pageTitle: 'Edit Product',
+        path: '/admin/edit-product',
         editing: editMode,
         product: product,
         errorMessages: [],
       });
     })
-    .catch((err) => {
+    .catch(err => {
       const error = new Error(err);
       error.httpStatusCode = 500;
       return next(error);
@@ -103,9 +105,9 @@ exports.postEditProduct = (req, res, next) => {
   const errors = validationResult(req);
 
   if (!errors.isEmpty()) {
-    return res.status(422).render("admin/edit-product", {
-      pageTitle: "Edit Product",
-      path: "/admin/edit-product",
+    return res.status(422).render('admin/edit-product', {
+      pageTitle: 'Edit Product',
+      path: '/admin/edit-product',
       editing: true,
       errorMessages: errors.array(),
       product: {
@@ -118,9 +120,9 @@ exports.postEditProduct = (req, res, next) => {
   }
 
   Product.findById(prodId)
-    .then((product) => {
+    .then(product => {
       if (product.userId.toString() !== req.user._id.toString()) {
-        return res.redirect("/");
+        return res.redirect('/');
       }
 
       product.title = updatedTitle;
@@ -128,14 +130,15 @@ exports.postEditProduct = (req, res, next) => {
       product.description = updatedDescription;
 
       if (image) {
+        removeFile('images', product.imageUrl.slice(8));
         product.imageUrl = SEPARATOR_SIGN.concat(image.path);
       }
 
       return product.save().then(() => {
-        res.redirect("/admin/products");
+        res.redirect('/admin/products');
       });
     })
-    .catch((err) => {
+    .catch(err => {
       const error = new Error(err);
       error.httpStatusCode = 500;
       return next(error);
@@ -145,30 +148,34 @@ exports.postEditProduct = (req, res, next) => {
 exports.getProducts = (req, res, next) => {
   Product.find({ userId: req.user._id })
     // .populate('userId')
-    .then((products) => {
-      res.render("admin/products", {
+    .then(products => {
+      res.render('admin/products', {
         prods: products,
-        pageTitle: "Admin Products",
-        path: "admin/products",
+        pageTitle: 'Admin Products',
+        path: 'admin/products',
       });
     })
-    .catch((err) => {
+    .catch(err => {
       const error = new Error(err);
       error.httpStatusCode = 500;
-      return next(error)
+      return next(error);
     });
 };
 
 exports.postDeleteProduct = (req, res, next) => {
   const prodId = req.body.productId;
 
-  Product.deleteOne({ _id: prodId, userId: req.user._id })
-    .then((deleteResult) => {
-      return res.redirect("/admin/products");
+  Product.findOneAndDelete({ _id: prodId, userId: req.user._id })
+    .then(product => {
+      if (!product) {
+        next(new Error('The product is not found!'));
+      }
+      removeFile('images', product.imageUrl.slice(8));
+      return res.redirect('/admin/products');
     })
-    .catch((err) => {
+    .catch(err => {
       const error = new Error(err);
       error.httpStatusCode = 500;
-      return next(error)
+      return next(error);
     });
 };

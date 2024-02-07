@@ -1,6 +1,8 @@
 node_modules
 prettier.config.cjs
+.prettierrc
 images
+data/invoices
 
 # Editor directories and files
 .idea
