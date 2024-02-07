@@ -14,9 +14,12 @@
                             <p><strong>Shipping to:</strong> <%= order.user.username %> (<%= order.user.email %>)</p>
                             <ul>
                                 <% order.products.forEach(item => { %> %>
-                                    <li><%= item.product.title %> (<%= item.quantity %>) - <%= item.product.price %></li>
+                                    <li>
+                                        <%= item.product.title %> (<%= item.quantity %>) - <%= item.product.price %>
+                                    </li>
                                 <% }) %>
                             </ul>
+                            <a href="/orders/<%= order._id.toString() %>">Invoice</a>
                             <p><strong>Total:</strong> <%= order.total %>$</p>
                         </li>
                     <% }) %>
