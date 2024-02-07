@@ -2,6 +2,7 @@ const Product = require('../models/product');
 const Order = require('../models/order');
 const fs = require('fs');
 const path = require('path');
+const pdfDocument = require('pdfkit');
 
 exports.getIndex = (req, res, next) => {
   Product.find()
@@ -129,17 +130,56 @@ exports.getInvoice = (req, res, next) => {
 
       const invoiceName = `invoice_${orderId}.pdf`;
       const invoicePath = path.join('data', 'invoices', invoiceName);
-
-      // Not a performant way, instead do fileStreaming
-      // fs.readFile(invoicePath, (err, data) => {});
-
-      const file = fs.createReadStream(invoicePath);
+      const orderUrl = `${req.protocol}://${req.get('host')}${req.originalUrl}`;
+      const pdfDoc = new pdfDocument();
 
       res.set({
         'Content-Type': 'application/pdf',
-        'Content-Disposition': `attachment; filename=${invoiceName}`,
+        'Content-Disposition': `inline; filename=${invoiceName}`,
       });
-      file.pipe(res);
+
+      pdfDoc.pipe(fs.createWriteStream(invoicePath));
+      pdfDoc
+        .fontSize(23)
+        .text('Invoice for the order id:', {
+          align: 'center',
+        })
+        .fillColor('#e71661')
+        .text(order._id.toString(), {
+          align: 'center',
+          link: orderUrl,
+        });
+      pdfDoc
+        .fillColor('#000000')
+        .text('____________________________________')
+        .moveDown();
+      pdfDoc.fontSize(18);
+      pdfDoc
+        .text(`Billing address:`)
+        .fontSize(14)
+        .text(`Username: ${order.user.username || ''}`)
+        .fontSize(14)
+        .text(`Email: ${order.user.email || ''}`)
+        .moveDown();
+      pdfDoc.fontSize(18).text('Ordered products:').moveDown(0.5);
+
+      order.products.forEach((item, index) => {
+        pdfDoc
+          .fontSize(14)
+          .text(
+            `${item.quantity} x ${item.product.title} -  $${item.product.price}`,
+          );
+      });
+
+      pdfDoc.moveDown().fontSize(18).text(`Total: $${order.total}`);
+      pdfDoc.pipe(res);
+      pdfDoc.end();
+
+      // Not a performant way, instead do fileStreaming
+      // fs.readFile(invoicePath, (err, data) => {});
+      // for files served localy
+      // const file = fs.createReadStream(invoicePath);
+      // file.pipe(res);
     })
     .catch(err => next(err));
 };
