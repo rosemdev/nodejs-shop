@@ -10,16 +10,19 @@
         </div>
         <hr>
         <div>
-            <h3>Your order id <%= order._id.toString() %></h3>
-            <ul>
-                <% for (let lineitem of order.products) { %>
-                    <li><%= lineitem.product.title %> x <%= lineitem.quantity %> - $<%= lineitem.product.price %></li>
-                <% } %>
-                <h2>Total: <%= order.total %></h2>
-            </ul>
+            <% if (order && order.products) { %>
+                <h3>Your order: </h3>
+                <ul>
+                    <% for (let lineitem of order.products) { %>
+                        <li>
+                            <%= lineitem.description %> x <%= lineitem.quantity %> - $<%= lineitem.price.unit_amount / 100 %>
+                        </li>
+                    <% } %>
+                    <h2>Total: <%= order.total %></h2>
+                </ul>
+                 <a class="btn" href="/orders">See all orders</a>
+            <% } %>
         </div>
-
-        <a class="btn" href="/orders">See all orders</a>
     </div>
 
 <%- include('../includes/end.ejs') %>

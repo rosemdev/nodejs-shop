@@ -225,7 +225,8 @@ exports.postCreateCheckoutSession = (req, res, next) => {
       return stripe.checkout.sessions.create({
         line_items: lineItems,
         mode: 'payment',
-        success_url: `${DOMAIN}/checkout/success`,
+        client_reference_id: req.user._id.toString(),
+        success_url: `${DOMAIN}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
         cancel_url: `${DOMAIN}/checkout/cancel`,
         automatic_tax: { enabled: true },
       });
@@ -242,25 +243,22 @@ exports.postCreateCheckoutSession = (req, res, next) => {
     });
 };
 
-exports.postOrder = (req, res, next) => {
-  if (!req.user.cart.items.length) {
-    return res.redirect('/cart');
-  }
-
-  req.user
-    .addOrder()
-    .then(order => {
+exports.getSuccessPage = (req, res, next) => {
+  return stripe.checkout.sessions
+    .retrieve(req.query.session_id, {
+      expand: ['line_items'],
+    })
+    .then(session => {
       res.render('shop/success', {
         pageTitle: 'Success',
         path: '/success',
-        order: order,
+        order: {
+          products: session.line_items.data,
+          total: Number(session.amount_total / 100).toFixed(2),
+        },
       });
     })
-    .catch(err => {
-      const error = new Error(err);
-      error.httpStatusCode = 500;
-      return next(error);
-    });
+    .catch(err => next(new Error(err)));
 };
 
 exports.getInvoice = (req, res, next) => {

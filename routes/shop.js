@@ -2,8 +2,6 @@ const express = require('express');
 
 const shopController = require('../controllers/shop');
 const isAuth = require('../middleware/is-auth');
-
-
 const router = express.Router();
 
 router.get('/', shopController.getIndex);
@@ -19,7 +17,7 @@ router.post(
   shopController.postCreateCheckoutSession,
 );
 router.get('/orders', isAuth, shopController.getOrders);
-router.get('/checkout/success', isAuth, shopController.postOrder);
+router.get('/checkout/success', isAuth, shopController.getSuccessPage);
 router.get('/checkout/cancel', isAuth, shopController.getCheckout);
 router.get("/orders/:orderId", isAuth, shopController.getInvoice);
 

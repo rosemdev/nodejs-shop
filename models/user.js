@@ -106,29 +106,31 @@ userSchema.methods.deleteItemFromCart = function (id) {
 };
 
 userSchema.methods.addOrder = function () {
-  return this.populate('cart.items.productId').then(user => {
-    const orderedProducts = user.cart.items.map(item => {
-      return {
-        product: { ...item.productId._doc },
-        quantity: item.quantity,
-      };
-    });
+  return this.populate('cart.items.productId')
+    .then(user => {
+      const orderedProducts = user.cart.items.map(item => {
+        return {
+          product: { ...item.productId._doc },
+          quantity: item.quantity,
+        };
+      });
 
-    const order = new Order({
-      user: { username: this.username, email: this.email, userId: this._id },
-      products: orderedProducts,
-      total: this.cart.total,
-    });
+      const order = new Order({
+        user: { username: this.username, email: this.email, userId: this._id },
+        products: orderedProducts,
+        total: this.cart.total,
+      });
 
-    this.cart.items = [];
-    this.cart.total = 0;
-    this.save();
-    return order.save();
-  });
+      this.cart.items = [];
+      this.cart.total = 0;
+      this.save();
+      return order.save();
+    })
+    .catch(err => next(new Error(err)));
 };
 
 userSchema.methods.getOrders = function () {
-  return Order.find({ 'user.userId': this._id });
+  return Order.find({ 'user.userId': this._id }).sort({ createdAt: -1 });
 };
 
 module.exports = mongoose.model('User', userSchema);

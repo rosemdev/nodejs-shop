@@ -1,0 +1,14 @@
+.order__item-list {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-around;
+}
+
+.order__item {
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.order__item-status, .order__item-date {
+  color: #0000ee;
+}
