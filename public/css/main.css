@@ -30,6 +30,14 @@ form {
 .image img {
   height: 100%;
 }
+ul {
+  list-style: none;
+}
+
+li {
+  margin: 5px;
+  padding: 5px;
+}
 
 .main-header {
   width: 100%;
