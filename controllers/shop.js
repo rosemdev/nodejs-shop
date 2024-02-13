@@ -6,7 +6,7 @@ const pdfDocument = require('pdfkit');
 const stripe = require('stripe')(process.env.STRIPE_API_KEY);
 
 //Constants
-const ITEMS_PER_PAGE = 2;
+const ITEMS_PER_PAGE = 3;
 
 exports.getIndex = (req, res, next) => {
   const page = Number(req.query.page) || 1;
