@@ -1,7 +1,7 @@
-const mongoose = require("mongoose");
+const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
-const Order = require("../models/order");
+const Order = require('../models/order');
 
 const userSchema = new Schema({
   username: {
@@ -21,12 +21,12 @@ const userSchema = new Schema({
 
   resetToken: {
     type: String,
-    required: false
+    required: false,
   },
 
   resetTokenExpiration: {
     type: Date,
-    required: false
+    required: false,
   },
 
   cart: {
@@ -34,10 +34,12 @@ const userSchema = new Schema({
       {
         productId: {
           type: Schema.Types.ObjectId,
-          ref: "Product",
+          ref: 'Product',
           required: true,
         },
+        title: { type: String, required: true },
         quantity: { type: Number, required: true },
+        price: { type: Number, required: true },
       },
     ],
     total: { type: Number, required: true },
@@ -46,26 +48,41 @@ const userSchema = new Schema({
 
 userSchema.methods.addToCart = function (product) {
   let cartItems = [...this.cart.items];
-  let total = +Number.parseFloat(this.cart.total).toFixed(2);
+  let total = +Number.parseFloat(this.cart.total || 0).toFixed(2);
 
   product.price = +Number.parseFloat(product.price).toFixed(2);
   total = +(total + product.price).toFixed(2);
 
-  const cartProductIndex = cartItems.findIndex((item) => {
+  const cartProductIndex = cartItems.findIndex(item => {
     return item.productId.toString() === product._id.toString();
   });
 
   if (cartProductIndex > -1) {
     const cartItem = cartItems[cartProductIndex];
     cartItem.quantity = cartItem.quantity + 1;
+    cartItem.price = +Number.parseFloat(
+      cartItem.quantity * product.price,
+    ).toFixed(2);
   } else {
-    cartItems.push({ productId: product._id, quantity: 1 });
+    cartItems.push({
+      productId: product._id,
+      title: product.title,
+      quantity: 1,
+      price: product.price,
+    });
   }
 
   const updatedCart = cartItems.length
     ? { items: cartItems, total: total }
     : {
-        items: [{ productId: product._id, quantity: 1 }],
+        items: [
+          {
+            productId: product._id,
+            title: product.title,
+            quantity: 1,
+            price: product.price,
+          },
+        ],
         total: product.price,
       };
 
@@ -75,7 +92,11 @@ userSchema.methods.addToCart = function (product) {
 };
 
 userSchema.methods.deleteItemFromCart = function (id) {
-  const updatedCartItems = this.cart.items.filter((item) => {
+  const updatedCartItems = this.cart.items.filter(item => {
+    if (item.productId.toString() === id.toString()) {
+      this.cart.total = Number(this.cart.total - item.price).toFixed(2);
+    }
+
     return item.productId.toString() !== id.toString();
   });
 
@@ -85,29 +106,31 @@ userSchema.methods.deleteItemFromCart = function (id) {
 };
 
 userSchema.methods.addOrder = function () {
-  return this.populate("cart.items.productId").then((user) => {
-    const orderedProducts = user.cart.items.map((item) => {
-      return {
-        product: { ...item.productId._doc },
-        quantity: item.quantity,
-      };
-    });
+  return this.populate('cart.items.productId')
+    .then(user => {
+      const orderedProducts = user.cart.items.map(item => {
+        return {
+          product: { ...item.productId._doc },
+          quantity: item.quantity,
+        };
+      });
 
-    const order = new Order({
-      user: { username: this.username, email: this.email, userId: this._id },
-      products: orderedProducts,
-      total: this.cart.total
-    });
+      const order = new Order({
+        user: { username: this.username, email: this.email, userId: this._id },
+        products: orderedProducts,
+        total: this.cart.total,
+      });
 
-    this.cart.items = [];
-    this.cart.total = 0;
-    this.save();
-    return order.save();
-  });
+      this.cart.items = [];
+      this.cart.total = 0;
+      this.save();
+      return order.save();
+    })
+    .catch(err => next(new Error(err)));
 };
 
 userSchema.methods.getOrders = function () {
-  return Order.find({ "user.userId": this._id });
+  return Order.find({ 'user.userId': this._id }).sort({ createdAt: -1 });
 };
 
-module.exports = mongoose.model("User", userSchema);
+module.exports = mongoose.model('User', userSchema);

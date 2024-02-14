@@ -18,6 +18,7 @@ const User = require('./models/user');
 const adminRoutes = require('./routes/admin');
 const shopRoutes = require('./routes/shop');
 const authRoutes = require('./routes/auth');
+const webhookRoutes = require('./routes/webhook');
 const errorController = require('./controllers/error');
 
 // Initialization
@@ -65,6 +66,9 @@ app.use(
     store: store,
   }),
 );
+
+// Request from 3rd parties that unable to have csrfProtection
+app.use('/checkout', webhookRoutes);
 
 app.use(csrfProtection);
 app.use(flash());

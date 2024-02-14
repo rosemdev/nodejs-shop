@@ -19,14 +19,9 @@
                         </li>
                     <% }) %>
                 </ul>
-                <hr>
-                <p class="centered"><strong>Total: <%= total %>$</strong></p>
-                <hr>
                 <div class="centered">
-                    <form action="/create-order" method="POST">
-                        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-                        <button type="submit" class="btn">Order Now!</button>
-                    </form>
+                    <h2><strong>Total: <%= total %>$</strong></h2>
+                    <a class="btn" href="/checkout">Order Now!</a>
                 </div>
 
             <% } else { %>

@@ -1,35 +1,34 @@
 <%- include('../includes/head.ejs') %>
+<link rel="stylesheet" href="/css/order.css">
 </head>
 
 <body>
     <%- include('../includes/navigation.ejs') %>
-
     <main>
-        <main>
-            <% if (orders && orders.length > 0) { %>
-                <ul class="cart__item-list">
-                    <% orders.forEach(order => { %>
-                        <li class="cart__item">
-                            <h1># <%= order._id.toString() %>
-                                <a href="/orders/<%= order._id.toString() %>">Invoice</a>
-                            </h1> 
-                            <p><strong>Shipping to:</strong> <%= order.user.username %> (<%= order.user.email %>)</p>
-                            <ul>
-                                <% order.products.forEach(item => { %> %>
-                                    <li>
-                                        <%= item.product.title %> (<%= item.quantity %>) - <%= item.product.price %>
-                                    </li>
-                                <% }) %>
-                            </ul>
-                            
-                            <p><strong>Total:</strong> <%= order.total %>$</p>
-                        </li>
-                    <% }) %>
-                </ul>
-            <% } else { %>
-                <h1>Nothing there!</h1>
-            <% } %>
-        </main>
+        <% if (orders && orders.length > 0) { %>
+            <ul class="order__item-list">
+                <% orders.forEach(order => { %>
+                    <li class="order__item">
+                        <h4><span class="order__item-date"><%= order.createdAt.toLocaleDateString() %></span></h4>
+                        <h1># <%= order._id.toString() %>
+                            <a href="/orders/<%= order._id.toString() %>">Invoice</a>
+                        </h1> 
+                        <h3>Status: <span class="order__item-status"><%= order.status %></span></h3>
+                        <p><strong>Shipping to:</strong> <%= order.user.username %> (<%= order.user.email %>)</p>
+                        <ul>
+                            <% order.products.forEach(item => { %> %>
+                                <li>
+                                    <%= item.product.title %> (<%= item.quantity %>) - <%= item.product.price %>
+                                </li>
+                            <% }) %>
+                        </ul>
+                        
+                        <h3><strong>Total:</strong> <%= order.total %>$</h3>
+                    </li>
+                <% }) %>
+            </ul>
+        <% } else { %>
+            <h1>Nothing there!</h1>
+        <% } %>
     </main>
-
     <%- include('../includes/end.ejs') %>

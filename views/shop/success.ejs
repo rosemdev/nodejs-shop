@@ -1,0 +1,28 @@
+<%- include('../includes/head.ejs') %>
+</head>
+
+<body>
+    <%- include('../includes/navigation.ejs') %>
+    <div class="centered">
+        <div>
+            <h1>The payment was succsessful</h1>
+            <h2>Thank you for placing the order</h2>
+        </div>
+        <hr>
+        <div>
+            <% if (order && order.products) { %>
+                <h3>Your order: </h3>
+                <ul>
+                    <% for (let lineitem of order.products) { %>
+                        <li>
+                            <%= lineitem.description %> x <%= lineitem.quantity %> - $<%= lineitem.price.unit_amount / 100 %>
+                        </li>
+                    <% } %>
+                    <h2>Total: <%= order.total %></h2>
+                </ul>
+                 <a class="btn" href="/orders">See all orders</a>
+            <% } %>
+        </div>
+    </div>
+
+<%- include('../includes/end.ejs') %>
