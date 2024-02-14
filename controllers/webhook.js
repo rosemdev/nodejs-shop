@@ -6,8 +6,6 @@ const stripe = require('stripe')(process.env.STRIPE_API_KEY);
 const STRIPE_ENDPOINT_SECRET = process.env.STRIPE_ENDPOINT_SECRET;
 
 exports.postWebhook = (req, res, next) => {
-  console.log('postWebhook');
-
   const payload = req.body;
   const sig = req.headers['stripe-signature'];
   let event;
@@ -22,8 +20,6 @@ exports.postWebhook = (req, res, next) => {
     console.log(err.message);
     return res.status(400).send(`Webhook Error: ${err.message}`);
   }
-
-  console.log(event.type);
 
   // Handle the checkout.session.completed event
   if (event.type === 'checkout.session.completed') {
