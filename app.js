@@ -10,13 +10,6 @@ const session = require('express-session');
 const MongoDBStore = require('connect-mongodb-session')(session);
 const csrf = require('csurf');
 const flash = require('connect-flash');
-const stripe = require('stripe')(process.env.STRIPE_API_KEY);
-
-//Constants
-const STRIPE_ENDPOINT_SECRET = process.env.STRIPE_ENDPOINT_SECRET;
-
-//Utils
-const fulFillOrder = require('./util/fulFillOrder');
 
 // Models
 const User = require('./models/user');
@@ -25,6 +18,7 @@ const User = require('./models/user');
 const adminRoutes = require('./routes/admin');
 const shopRoutes = require('./routes/shop');
 const authRoutes = require('./routes/auth');
+const webhookRoutes = require('./routes/webhook');
 const errorController = require('./controllers/error');
 
 // Initialization
@@ -74,46 +68,7 @@ app.use(
 );
 
 // Request from 3rd parties that unable to have csrfProtection
-app.use(
-  '/checkout/webhook',
-  bodyParser.raw({ type: 'application/json' }),
-  (req, res, next) => {
-    console.log('postWebhook');
-
-    const payload = req.body;
-    const sig = req.headers['stripe-signature'];
-    let event;
-
-    try {
-      event = stripe.webhooks.constructEvent(
-        payload,
-        sig,
-        STRIPE_ENDPOINT_SECRET,
-      );
-    } catch (err) {
-      return res.status(400).send(`Webhook Error: ${err.message}`);
-    }
-
-    console.log(event.type);
-
-    // Handle the checkout.session.completed event
-    if (event.type === 'checkout.session.completed') {
-      // Retrieve the session. If you require line items in the response, you may include them by expanding line_items.
-      stripe.checkout.sessions
-        .retrieve(event.data.object.id, {
-          expand: ['line_items'],
-        })
-        .then(sessionWithLineItems => {
-          // Fulfill the purchase...
-          return fulFillOrder(sessionWithLineItems);
-        })
-        .catch(error => {
-          next(new Error(error));
-        });
-    }
-    res.status(200).end();
-  },
-);
+app.use('/checkout', webhookRoutes);
 
 app.use(csrfProtection);
 app.use(flash());
